@@ -1,0 +1,5 @@
+{
+  "name": "Gravity Player 2",
+  "description": "A universal web-based video player that supports direct files, HLS, DASH, YouTube, and Vimeo with a unified interface.",
+  "requestFramePermissions": []
+}
