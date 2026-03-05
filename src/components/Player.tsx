@@ -238,14 +238,42 @@ export function Player({ url }: PlayerProps) {
     }
   };
 
-  const handleError = (e: any) => {
-    console.error('Player error:', e);
-    // Check if it's a CORS or DRM issue
-    if (e?.target?.error?.code === 3 || e?.target?.error?.code === 4) {
-      setError('This video source is protected or restricted. Please ensure it is publicly accessible and supports CORS.');
-    } else {
-      setError('Failed to load video. Please check the URL or try another source.');
+  useEffect(() => {
+    // Reset state on URL change
+    setIsReady(false);
+    setError(null);
+    setPlaying(true);
+    setPlayed(0);
+    setLoaded(0);
+    setDuration(0);
+    setCountdown(null);
+    setIsBuffering(true);
+
+    // Validate CORS availability for direct files
+    const isDirectFile = url.match(/\.(mp4|m3u8|mpd|webm|ogg)$/i);
+    if (isDirectFile) {
+      fetch(url, { method: 'HEAD', mode: 'cors' })
+        .then(res => {
+          if (!res.ok && res.status !== 405 && res.status !== 403) {
+            // Might be blocked or 404
+            setError('This video cannot be played due to CORS restrictions or source protection.');
+            setIsBuffering(false);
+          } else if (res.status === 403) {
+            setError('This video cannot be played due to CORS restrictions or source protection.');
+            setIsBuffering(false);
+          }
+        })
+        .catch(() => {
+          // CORS error or network error
+          setError('This video cannot be played due to CORS restrictions or source protection.');
+          setIsBuffering(false);
+        });
     }
+  }, [url]);
+
+  const handleError = (e: any, data?: any) => {
+    console.error('Player error:', e, data);
+    setError('This video cannot be played due to CORS restrictions or source protection.');
     setIsReady(false);
     setIsBuffering(false);
   };
